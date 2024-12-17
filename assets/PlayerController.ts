@@ -1,4 +1,4 @@
-import { _decorator, Component, EventMouse, Input, input, Node, Vec3 } from 'cc';
+import { _decorator, Component, EventMouse, Input, input, Node, Vec3, Animation } from 'cc';
 const { ccclass, property } = _decorator;
 
 export const BLOCK_SIZE = 40; // 添加一个放大比
@@ -8,6 +8,7 @@ export const BLOCK_SIZE = 40; // 添加一个放大比
 export class PlayerController extends Component {
     start() {
         input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        this._jumpTime = this.BodyAnim.getState("oneStep").duration;
     }
     onMouseUp(event: EventMouse) {
         if (event.getButton() === 0) {
@@ -41,6 +42,9 @@ export class PlayerController extends Component {
         this._curJumpSpeed = this._jumpStep * BLOCK_SIZE / this._jumpTime; // 根据时间计算出速度
         this.node.getPosition(this._curPos); // 获取角色当前的位置
         Vec3.add(this._targetPos, this._curPos, new Vec3(this._jumpStep * BLOCK_SIZE, 0, 0));    // 计算出目标位置
+
+        // play anim
+        this.BodyAnim.play(step === 1 ? "oneStep" : "twoStep");
     }
     update(deltaTime: number) {
         if (this._startJump) {
@@ -58,6 +62,9 @@ export class PlayerController extends Component {
             }
         }
     }
+
+    @property(Animation) // Let user set value in editor
+    BodyAnim: Animation = null;
 }
 
 
