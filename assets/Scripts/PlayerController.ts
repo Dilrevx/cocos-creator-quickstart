@@ -6,10 +6,25 @@ export const BLOCK_SIZE = 40; // 添加一个放大比
 
 @ccclass('PlayerController')
 export class PlayerController extends Component {
+    private _curMoveIndex: number = 0;
+
+    reset() {
+        this._curMoveIndex = 0;
+        this.node.getPosition(this._curPos);
+        this._targetPos.set(0, 0, 0);
+    }
     start() {
-        input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
         this._jumpTime = this.BodyAnim.getState("oneStep").duration;
     }
+
+    setInputActive(active: boolean) {
+        if (active) {
+            input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        } else {
+            input.off(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        }
+    }
+
     onMouseUp(event: EventMouse) {
         if (event.getButton() === 0) {
             this.jumpByStep(1);
@@ -45,6 +60,8 @@ export class PlayerController extends Component {
 
         // play anim
         this.BodyAnim.play(step === 1 ? "oneStep" : "twoStep");
+
+        this._curMoveIndex += step;
     }
     update(deltaTime: number) {
         if (this._startJump) {
@@ -53,6 +70,7 @@ export class PlayerController extends Component {
                 // end 
                 this.node.setPosition(this._targetPos); // 强制位置到终点
                 this._startJump = false;               // 清理跳跃标记
+                this.onOnceJumpEnd();
             } else {
                 // tween
                 this.node.getPosition(this._curPos);
@@ -65,6 +83,10 @@ export class PlayerController extends Component {
 
     @property(Animation) // Let user set value in editor
     BodyAnim: Animation = null;
+
+    onOnceJumpEnd() {
+        this.node.emit('JumpEnd', this._curMoveIndex);
+    }
 }
 
 
